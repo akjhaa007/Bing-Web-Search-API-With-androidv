@@ -43,16 +43,18 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
-    private TextView resultTextView;
+    public TextView resultTextView;
     private ImageView resultImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        resultTextView = (TextView) findViewById(R.id.result);
-        resultImageView = (ImageView) findViewById(R.id.imageView);
 
+        resultImageView = (ImageView) this.findViewById(R.id.imageView);
+
+        SearchAsyncTask getNewsUpdate = new SearchAsyncTask();
+        getNewsUpdate.execute();
 
     }
 
@@ -84,17 +86,13 @@ public class MainActivity extends ActionBarActivity {
         private final String TAG = getClass().getName();
 
         private String mSearchStr;
+
         private int mNumOfResults = 0;
 
         private Callback mCallback;
         private BingSearchResults mBingSearchResults;
         private Error mError;
 
-        public SearchAsyncTask(String searchStr, int numOfResults, Callback callback) {
-            mSearchStr = searchStr;
-            mNumOfResults = numOfResults;
-            mCallback = callback;
-        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -119,7 +117,7 @@ public class MainActivity extends ActionBarActivity {
 
                 Gson gson = (new GsonBuilder()).create();
                 mBingSearchResults = gson.fromJson(res, BingSearchResults.class);
-
+                System.out.println(res);
                 Log.d(TAG, res);
                 //conn.disconnect();
 
@@ -171,4 +169,5 @@ public class MainActivity extends ActionBarActivity {
         public interface Callback {
             void onComplete(Object o, Error error);
         }
+
     }}
