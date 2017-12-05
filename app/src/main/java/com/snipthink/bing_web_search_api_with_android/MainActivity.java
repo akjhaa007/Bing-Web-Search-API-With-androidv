@@ -101,7 +101,7 @@ public class MainActivity extends ActionBarActivity {
                 String searchStr = URLEncoder.encode(mSearchStr);
                 String numOfResultsStr = mNumOfResults <= 0 ? "" : "&$top=" + mNumOfResults;
                 String bingUrl = "https://api.cognitive.microsoft.com/bing/v7.0/Web?Query=%27" + searchStr + "%27" + numOfResultsStr + "&$format=json";
-                String accountKey = "6d4c533fac3046e1842b2713d880e635";
+                String accountKey = "xxxxxxx";
 
                 byte[] accountKeyBytes;
                 accountKeyBytes = Base64.encode((accountKey + ":" + accountKey).getBytes(),Base64.DEFAULT);
