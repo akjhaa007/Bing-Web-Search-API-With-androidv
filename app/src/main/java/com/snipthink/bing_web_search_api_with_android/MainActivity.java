@@ -11,6 +11,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.util.Base64;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -27,11 +30,14 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+
 import java.util.ArrayList;
 
 
@@ -44,11 +50,10 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        resultTextView = (TextView) this.findViewById(R.id.result);
-        resultImageView = (ImageView) this.findViewById(R.id.imageView);
+        resultTextView = (TextView) findViewById(R.id.result);
+        resultImageView = (ImageView) findViewById(R.id.imageView);
 
-        BingAsyncTask getNewsUpdate = new BingAsyncTask();
-        getNewsUpdate.execute();
+
     }
 
 
@@ -74,128 +79,96 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public class BingAsyncTask extends AsyncTask<Void, Void, Bitmap> {
+    public static class SearchAsyncTask extends AsyncTask<Void, Void, Void> {
 
-        //private String APILink="https://api.cognitive.microsoft.com/bing/v7.0/search?q=bill gates&count=10&offset=0&mkt=en-us&safesearch=Moderate HTTP/1.1\n" +
-       // "Host: api.cognitive.microsoft.com";
+        private final String TAG = getClass().getName();
 
-       private String APILink = "https://api.cognitive.microsoft.com/bing/v7.0/images/search";
-        //private String APILink = "https://api.cognitive.microsoft.com/bing/v5.0/news/search?q=sailing+dinghies&offset=24&mkt=en-us HTTP/1.1Ocp-Apim-Subscription-Key: 123456789ABCDE";
-        private String API_KEY = "6d4c533fac3046e1842b2713d880e635";
-        private String[] SECTION = {"images"};
+        private String mSearchStr;
+        private int mNumOfResults = 0;
+
+        private Callback mCallback;
+        private BingSearchResults mBingSearchResults;
+        private Error mError;
+
+        public SearchAsyncTask(String searchStr, int numOfResults, Callback callback) {
+            mSearchStr = searchStr;
+            mNumOfResults = numOfResults;
+            mCallback = callback;
+        }
 
         @Override
-        protected Bitmap doInBackground(Void... params) {
-            String result = "";
-            //For some reason post method doesn't work.
-            //Only Get request work for this API.
-            //Prepare Post request.
-
-
-            HttpClient httpClient = new DefaultHttpClient();
-
-
-            //Add all array list
-        ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-            nameValuePairs.add(new BasicNameValuePair("Query", "'xbox'"));
-            nameValuePairs.add(new BasicNameValuePair("Market", "'en-us'"));
-            nameValuePairs.add(new BasicNameValuePair("ImageFilters", "'Size:Small'"));
-            String paramsString = URLEncodedUtils.format(nameValuePairs, "UTF-8");
-
-
-            //Log.e("Get link result ", APILink + SECTION[0] + "?" + paramsString);
-            //Build Link
-            HttpGet httpget = new HttpGet(APILink);
-            //HttpGet httpget = new HttpGet(APILink + SECTION[0] + "?" + paramsString);
-            String auth = API_KEY + ":" + API_KEY;
-            String encodedAuth = Base64.encodeToString(auth.getBytes(), Base64.NO_WRAP);
-            Log.e("", encodedAuth);
-            httpget.addHeader("Authorization", "Basic " + encodedAuth);
-
-
-            //Execute and get the response.
-            HttpResponse response = null;
+        protected Void doInBackground(Void... params) {
             try {
-                response = httpClient.execute(httpget);
-            } catch (IOException e1) {
-                e1.printStackTrace();
+
+                String searchStr = URLEncoder.encode(mSearchStr);
+                String numOfResultsStr = mNumOfResults <= 0 ? "" : "&$top=" + mNumOfResults;
+                String bingUrl = "https://api.cognitive.microsoft.com/bing/v7.0/Web?Query=%27" + searchStr + "%27" + numOfResultsStr + "&$format=json";
+                String accountKey = "6d4c533fac3046e1842b2713d880e635";
+
+                byte[] accountKeyBytes;
+                accountKeyBytes = Base64.encode((accountKey + ":" + accountKey).getBytes(),Base64.DEFAULT);
+                String accountKeyEnc = new String(accountKeyBytes);
+
+                URL url = null;
+                url = new URL(bingUrl);
+
+                URLConnection urlConnection = url.openConnection();
+                urlConnection.setRequestProperty("Authorization", "Basic " + accountKeyEnc);
+                InputStream response = urlConnection.getInputStream();
+                String res = readStream(response);
+
+                Gson gson = (new GsonBuilder()).create();
+                mBingSearchResults = gson.fromJson(res, BingSearchResults.class);
+
+                Log.d(TAG, res);
+                //conn.disconnect();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                mError = new Error(e.getMessage(), e);
+                //Log.e(TAG, e.getMessage());
             }
 
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = entity.getContent();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-                try {
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result += line;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            if (mCallback != null) {
+                mCallback.onComplete(mBingSearchResults, mError);
             }
 
-            //Extract link from JSON
-            //String to Json
-            JSONObject jsonObject = null;
-            if (JSONValue.isValidJson(result)) {
-                jsonObject = (JSONObject) JSONValue.parse(result);
-            }
-            ;
+        }
 
-            jsonObject = (JSONObject) jsonObject.get("d");
-            //iii
-            jsonObject = (JSONObject) ((JSONArray) jsonObject.get("results")).get(0);
-
-            jsonObject = (JSONObject) jsonObject.get("Thumbnail");
-            Log.e(". ", jsonObject.toString() + " . ");
-            String url = (String) jsonObject.get("MediaUrl");
-            Log.e(". ", url + " . ");
-
-            Bitmap bitmap = null;
+        private String readStream(InputStream in) {
+            BufferedReader reader = null;
+            StringBuilder sb = new StringBuilder();
             try {
-                bitmap = downloadBitmap(url);
+                reader = new BufferedReader(new InputStreamReader(in));
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    //System.out.println(line);
+                    sb.append(line + "\n");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-
-
-            return bitmap;
-        }
-
-        private Bitmap downloadBitmap(String url) throws IOException {
-            HttpUriRequest request = new HttpGet(url.toString());
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpResponse response = httpClient.execute(request);
-
-            StatusLine statusLine = response.getStatusLine();
-            int statusCode = statusLine.getStatusCode();
-            if (statusCode == 200) {
-                HttpEntity entity = response.getEntity();
-                byte[] bytes = EntityUtils.toByteArray(entity);
-
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0,
-                        bytes.length);
-                return bitmap;
-            } else {
-                throw new IOException("Download failed, HTTP response code "
-                        + statusCode + " - " + statusLine.getReasonPhrase());
-            }
+            return sb.toString();
 
 
         }
 
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            MainActivity.this.resultImageView.setImageBitmap(bitmap);
+        public interface Callback {
+            void onComplete(Object o, Error error);
         }
-    }
-}
+    }}
