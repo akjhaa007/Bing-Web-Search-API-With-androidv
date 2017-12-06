@@ -11,7 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.util.Base64;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
