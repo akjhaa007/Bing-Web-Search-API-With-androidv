@@ -23,7 +23,7 @@ import java.net.URLEncoder;
 
 
 public class MainActivity extends AppCompatActivity {
-
+    public TextView resltTextView;
     public TextView resultTextView;
     private ImageView resultImageView;
 
