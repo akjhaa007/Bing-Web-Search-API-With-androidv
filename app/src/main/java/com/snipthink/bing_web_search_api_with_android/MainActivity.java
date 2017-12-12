@@ -78,11 +78,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-
+                String searchStrr = URLEncoder.encode(mSearchStr);
                 String searchStr = URLEncoder.encode(mSearchStr);
                 String numOfResultsStr = mNumOfResults <= 0 ? "" : "&$top=" + mNumOfResults;
                 String bingUrl = "7" + searchStr + "%27" + numOfResultsStr + "&$format=json";
-                String accountKey = "xxxxxxx";
+                String accountKey = "xxxxxxxxx";
 
                 byte[] accountKeyBytes;
                 accountKeyBytes = Base64.encode((accountKey + ":" + accountKey).getBytes(),Base64.DEFAULT);
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return sb.toString(); //
 
-
+//
         }
 
         public interface Callback {
