@@ -2,7 +2,7 @@ package com.snipthink.bing_web_search_api_with_android;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
@@ -22,7 +22,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
     public TextView resultTextView;
     private ImageView resultImageView;
@@ -62,7 +62,7 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class SearchAsyncTask extends AsyncTask<Void, Void, Void> {
+    private static class SearchAsyncTask extends AsyncTask<Void, Void, Void> {
 
         private final String TAG = getClass().getName();
 
@@ -116,7 +116,7 @@ public class MainActivity extends ActionBarActivity {
             super.onPostExecute(result);
 
             if (mCallback != null) {
-                mCallback.onComplete(mBingSearchResults, mError);
+                mCallback.onComplete(mBingSearchResults, mError); //
             }
 
         }
