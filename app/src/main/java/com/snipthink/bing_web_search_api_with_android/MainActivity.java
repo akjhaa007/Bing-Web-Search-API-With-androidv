@@ -1,7 +1,5 @@
 package com.snipthink.bing_web_search_api_with_android;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -15,21 +13,6 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +20,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-
-import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -100,7 +81,7 @@ public class MainActivity extends ActionBarActivity {
 
                 String searchStr = URLEncoder.encode(mSearchStr);
                 String numOfResultsStr = mNumOfResults <= 0 ? "" : "&$top=" + mNumOfResults;
-                String bingUrl = "https://api.cognitive.microsoft.com/bing/v7.0/Web?Query=%27" + searchStr + "%27" + numOfResultsStr + "&$format=json";
+                String bingUrl = "7" + searchStr + "%27" + numOfResultsStr + "&$format=json";
                 String accountKey = "xxxxxxx";
 
                 byte[] accountKeyBytes;
@@ -161,7 +142,7 @@ public class MainActivity extends ActionBarActivity {
                     }
                 }
             }
-            return sb.toString();
+            return sb.toString(); //
 
 
         }
